@@ -22,9 +22,13 @@ def main() -> int:
 
     raw_df = spark.read.format("csv").option("header", "true").load(folder_path)
     max_neighbours_df = get_max_common_neighbors_pairs(raw_df, number_of_pairs)
-
-    max_neighbours_df.show()
+    print_result_df(max_neighbours_df)
     return 0
+
+
+def print_result_df(df: DataFrame):
+    for row in df.collect():
+        print(f"node1 = {row['pair'][0]}, node2 = {row['pair'][1]}, common = {row['count']}")
 
 
 def get_max_common_neighbors_pairs(df: DataFrame, number_of_pairs: int) -> DataFrame:
@@ -32,12 +36,12 @@ def get_max_common_neighbors_pairs(df: DataFrame, number_of_pairs: int) -> DataF
     df_b = df.select(col('src').alias("node_b"), col('dst').alias('dst_b'))
 
     df = df_a.join(df_b, (col("dst_a") == col("dst_b")) & (col("node_a") != col("node_b"))).\
-        groupBy('node_a', 'node_b').count().orderBy(col('count').desc())
-    df = df.withColumn("pair", array_join(array_sort(array(col("node_a"), col("node_b"))), "_")).\
-        drop("node_a", "node_b").dropDuplicates()
+        groupBy('node_a', 'node_b').count()
+    df = df.withColumn("pair", array_sort(array(col("node_a"), col("node_b")))).\
+        drop("node_a", "node_b").dropDuplicates().orderBy(col('count').desc())
 
+    df.show()
     result = df.limit(number_of_pairs)
-
     return result
 
 
