@@ -45,5 +45,11 @@ def get_max_common_neighbors_pairs(df: DataFrame, number_of_pairs: int) -> DataF
     return result
 
 
+def get_max_common_neighbors_pairs_undirected(df: DataFrame, number_of_pairs: int) -> DataFrame:
+    df_rev = df.select(col('dst').alias("src"), col('src').alias('dst'))
+    df = df.union(df_rev).dropDuplicates()
+    return get_max_common_neighbors_pairs(df, number_of_pairs)
+
+
 if __name__ == '__main__':
     exit_code = main()
