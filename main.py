@@ -40,7 +40,6 @@ def get_max_common_neighbors_pairs(df: DataFrame, number_of_pairs: int) -> DataF
     df = df.withColumn("pair", array_sort(array(col("node_a"), col("node_b")))).\
         drop("node_a", "node_b").dropDuplicates().orderBy(col('count').desc())
 
-    df.show()
     result = df.limit(number_of_pairs)
     return result
 
